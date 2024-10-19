@@ -6,7 +6,7 @@ class Settings(BaseSettings):
 
     
     model_config = SettingsConfigDict(
-        env_file='apps\.env',
+        env_file='.env',
         #case_sensitive=True
     )
 
