@@ -5,7 +5,7 @@ from fastapi.security.oauth2 import OAuth2PasswordBearer
 from .config import settings
 
 
-oauth2 = OAuth2PasswordBearer(tokenUrl="/login")
+oauth2 = OAuth2PasswordBearer(tokenUrl="login")
 
 Secret_key = settings.secret_key
 
