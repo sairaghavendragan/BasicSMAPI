@@ -30,7 +30,7 @@ def get_posts(
 # Get specific post
 
 
-@router.get("/{id}", status_code=status.HTTP_200_OK, response_model=schemas.postvote
+@router.get("/{id}", status_code=status.HTTP_200_OK, response_model=schemas.postoutput
 )
 def get_post(
     id: int,
