@@ -2,14 +2,15 @@ from fastapi import Depends, HTTPException, status
 from jose import jwt, JWTError
 from datetime import datetime, timedelta, timezone
 from fastapi.security.oauth2 import OAuth2PasswordBearer
+from .config import settings
 
 
 oauth2 = OAuth2PasswordBearer(tokenUrl="/login")
 
-Secret_key = "0853645hytfe54637382julo532"
+Secret_key = settings.secret_key
 
-algorithm = "HS256"
-expiretimein_minutes = 1
+algorithm = settings.algorithm
+expiretimein_minutes = 30
 
 
 def encode(data: dict):
