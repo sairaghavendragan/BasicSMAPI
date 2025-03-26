@@ -1,4 +1,4 @@
-from fastapi import Depends, HTTPException, status
+from fastapi import Depends, HTTPException, status,FastAPI
 from jose import jwt, JWTError
 from datetime import datetime, timedelta, timezone
 from fastapi.security.oauth2 import OAuth2PasswordBearer
@@ -12,6 +12,7 @@ Secret_key = settings.secret_key
 algorithm = settings.algorithm
 expiretimein_minutes = 30
 
+ 
 
 def encode(data: dict):
     to_encode = data.copy()

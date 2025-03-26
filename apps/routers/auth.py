@@ -12,7 +12,7 @@ router = APIRouter(tags=["auth"])
 def login(
     user_cred: OAuth2PasswordRequestForm = Depends(), db: Session = Depends(getdb)
 ):
-    query = db.query(models.users).filter(models.users.email == user_cred.username)
+    query = db.query(models.User).filter(models.User.email == user_cred.username)
     user = query.first()
     if not user:
         raise HTTPException(

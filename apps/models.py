@@ -12,7 +12,7 @@ from sqlalchemy.sql.sqltypes import TIMESTAMP
 from sqlalchemy.sql.expression import text
 
 
-class posts(Base):
+class Post(Base):
     __tablename__ = "posts"
 
     id = Column(INTEGER, primary_key=True, nullable=False)
@@ -26,10 +26,10 @@ class posts(Base):
         INTEGER, ForeignKey("users.id", ondelete="CASCADE"), nullable=False
     )
 
-    owner = relationship("users")
+    owner = relationship("User",backref="posts")
 
 
-class users(Base):
+class User(Base):
     __tablename__ = "users"
 
     id = Column(INTEGER, primary_key=True, nullable=False)

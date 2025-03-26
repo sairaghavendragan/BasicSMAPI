@@ -8,8 +8,7 @@ class postbase(BaseModel):
     published: bool
 
     # created_at:datetime
-    class config:
-        orm_mode = True
+    model_config = ConfigDict(from_attributes=True)
 
     # model_config =  configs
 
@@ -42,8 +41,7 @@ class useroutput(BaseModel):
     email: EmailStr
     created_at: datetime
 
-    class config:
-        orm_mode = True
+    model_config = ConfigDict(from_attributes=True)
 
 
 class userlogin(BaseModel):

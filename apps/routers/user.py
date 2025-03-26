@@ -14,17 +14,22 @@ router = APIRouter(prefix="/users", tags=["users"])
 def createuser(user: schemas.usercreate, db: Session = Depends(getdb)):
     hashed_password = utils.hash_password(user.password)
     user.password = hashed_password
-    new_user = models.users(**user.model_dump())
-    db.add(new_user)
-    db.commit()
-    db.refresh(new_user)
+    new_user = models.User(**user.dict())
+    try :
+        db.add(new_user)
+        db.commit()
+        db.refresh(new_user)
+    except Exception as e:
+        db.rollback()
+        raise HTTPException(status_code=500, detail=str(e)) 
+    
     return new_user
 
 
 @router.get("/{id}", response_model=schemas.useroutput)
 def getuser(id: int, db: Session = Depends(getdb)):
-    query = db.query(models.users).filter(models.users.id == id)
-    user = query.first()
+    user = db.query(models.User).filter(models.User.id == id).first()
+    #user = query.first()
     if not user:
         raise HTTPException(status_code=404, detail="user not found")
     return user

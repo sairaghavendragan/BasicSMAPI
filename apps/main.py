@@ -16,6 +16,28 @@ models.Base.metadata.create_all(bind=engine)
 
 app = FastAPI()
 
+'''original_openapi = app.openapi
+
+def custom_get_openapi():
+    # Get the default OpenAPI schema
+    openapi_schema = original_openapi()
+
+    # Add the Bearer Authentication schema to the securitySchemes
+    openapi_schema["components"]["securitySchemes"] = {
+        "bearerAuth": {
+            "type": "http",
+            "scheme": "bearer",
+            "bearerFormat": "JWT",  # Optional, but you can specify "JWT"
+            "description": "Enter JWT Bearer token **_only_**",
+        }
+    }
+    # Add the security requirement to all endpoints if needed
+    #openapi_schema["security"] = [{"bearerAuth": []}]  # Applies globally
+
+    return openapi_schema
+
+app.openapi = custom_get_openapi
+'''
 app.add_middleware(
     CORSMiddleware,
     allow_origins=["*"],
