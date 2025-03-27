@@ -10,7 +10,7 @@ oauth2 = OAuth2PasswordBearer(tokenUrl="login")
 Secret_key = settings.secret_key
 
 algorithm = settings.algorithm
-expiretimein_minutes = 30
+expiretimein_minutes = settings.access_token_expire_minutes
 
  
 

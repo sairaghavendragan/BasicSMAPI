@@ -2,9 +2,11 @@ from fastapi import FastAPI, HTTPException, Response, status, Depends, APIRouter
 from ..database import getdb
 from sqlalchemy.orm import Session 
 from sqlalchemy import func
+from sqlalchemy import select
 from typing import List,Optional
 
 from .. import models, schemas, utils, oauth2
+from . import vote
 
 router = APIRouter(prefix="/posts", tags=["posts"])
 
@@ -13,12 +15,18 @@ router = APIRouter(prefix="/posts", tags=["posts"])
 
 
 @router.get(
-    "/", status_code=status.HTTP_200_OK, response_model=List[schemas.postoutput]
+    "/", status_code=status.HTTP_200_OK, response_model=List[schemas.PostWithScore]
 )
 def get_posts(
     db: Session = Depends(getdb), current_user: int = Depends(oauth2.get_current_user),limit:int=10,search:Optional[str]=""
 ):
-    posts = db.query(models.Post).filter(models.Post.title.contains(search)).limit(limit).all()
+    #posts = db.query(models.Post).filter(models.Post.title.contains(search)).limit(limit).all()
+    stmt = select(models.Post).filter(models.Post.title.contains(search)).limit(limit) 
+    posts = db.execute(stmt).scalars().all()
+    for post in posts:
+        setattr (post,"post",post)
+        setattr (post,"score",vote.get_post_score(db,post.id))
+        #post.score = num_votes
     #posts = db.query(models.posts,func.count(models.votes.post_id)).join(models.votes,models.votes.post_id == models.posts.id, isouter=True).group_by(models.posts.id).filter(models.posts.title.contains(search)).limit(limit).all()  
     
     # cur.execute("SELECT * FROM posts")
@@ -30,7 +38,7 @@ def get_posts(
 # Get specific post
 
 
-@router.get("/{id}", status_code=status.HTTP_200_OK, response_model=schemas.postoutput
+@router.get("/{id}", status_code=status.HTTP_200_OK, response_model=schemas.PostWithScore
 )
 def get_post(
     id: int,
@@ -40,10 +48,12 @@ def get_post(
     # post = [post for post in my_posts if post["id"] == id]
     # cur.execute("SELECT * FROM posts WHERE id = %s",(id,))
     # post = cur.fetchone()
-    post = db.query(models.Post).filter(models.Post.id == id).first()
+    stmt = select(models.Post).filter(models.Post.id == id)
+    post = db.execute(stmt).scalar_one_or_none()
+    #post = db.query(models.Post).filter(models.Post.id == id).first()
     if not post:
         raise HTTPException(status_code=404, detail="post not found")
-    return post
+    return schemas.PostWithScore(post=post,score=vote.get_post_score(db,id))
 
 
 """@app.get("/posts/latest")
@@ -63,7 +73,7 @@ def create_posts(
     current_user: int = Depends(oauth2.get_current_user),
 ):
     #print(new_post)
-    post_dict = new_post.dict()
+    post_dict = new_post.model_dump()
     post_dict["owner_id"] = current_user
     post = models.Post(**post_dict)
     try:
@@ -97,8 +107,10 @@ def delete_posts(
     # post = cur.fetchone()
     # conn.commit()
     # post = cur.fetchone()
-    query = db.query(models.Post).filter(models.Post.id == id)
-    post = query.first()
+    stmt = select(models.Post).filter(models.Post.id == id)
+    post = db.execute(stmt).scalar_one_or_none()
+    #query = db.query(models.Post).filter(models.Post.id == id)
+    #post = query.first()
 
     if not post:
         raise HTTPException(status_code=404, detail="post not found")
@@ -111,7 +123,7 @@ def delete_posts(
     # my_posts.remove(post)
     try:
 
-        query.delete(synchronize_session=False)
+        db.delete(post)
         db.commit()
     except Exception as e:
         db.rollback()
@@ -136,8 +148,10 @@ def update_posts(
     # post = cur.fetchone()
     # conn.commit()
     # post = cur.fetchone()
-    query = db.query(models.Post).filter(models.Post.id == id)
-    post = query.first()
+    stmt = select(models.Post).filter(models.Post.id == id)
+    post = db.execute(stmt).scalar_one_or_none()
+    #query = db.query(models.Post).filter(models.Post.id == id)
+    #post = query.first()
 
     if not post:
         raise HTTPException(status_code=404, detail="post not found")
@@ -146,9 +160,11 @@ def update_posts(
             status_code=status.HTTP_403_FORBIDDEN,
             detail="not authorized to perform requested action",
         )
+    for key,value in new_post.model_dump().items():
+        setattr(post,key,value)
     try:
 
-        query.update(new_post.dict(), synchronize_session=False)
+         
         db.commit()
         db.refresh(post)
     except Exception as e:

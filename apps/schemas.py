@@ -1,8 +1,9 @@
 from pydantic import BaseModel, EmailStr,ConfigDict
 from datetime import datetime
+from typing import Literal
 
 
-class postbase(BaseModel):
+class PostBase(BaseModel):
     title: str
     content: str
     published: bool
@@ -13,11 +14,11 @@ class postbase(BaseModel):
     # model_config =  configs
 
 
-class postinput(postbase):
+class postinput(PostBase):
     pass
 
 
-class postoutput(postbase):
+class postoutput(PostBase):
     id: int
     created_at: datetime
     owner_id: int
@@ -53,6 +54,21 @@ class token(BaseModel):
     access_token: str
     token_type: str
 
-class vote(BaseModel):
+class VoteSchema(BaseModel): # Renamed for consistency
     post_id: int
-    dir: bool    
+    # Direction: 1 for upvote, -1 for downvote, 0 to clear vote
+    dir: Literal[1, -1 ]
+
+
+class VoteResponse(BaseModel):
+    message: str
+    post_id: int
+    current_score: int # Optional: return the new score
+
+class PostWithScore(BaseModel): 
+    post: postoutput
+    score: int
+    model_config = ConfigDict(from_attributes=True)      
+
+
+ 
